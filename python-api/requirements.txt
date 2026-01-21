@@ -2,3 +2,6 @@
 uvicorn[standard]
 pydantic
 pydantic-settings
+langchain
+supabase
+langchain-google-genai
