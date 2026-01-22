@@ -6,7 +6,8 @@
         "httpMethod": "POST",
         "path": "process-ticket",
         "responseMode": "lastNode",
-        "options": {}
+        "options": {},
+        "responseData": "firstEntryJson"
       },
       "id": "10b582f4-8ef3-4a9e-9ec1-d4fc38625201",
       "name": "Webhook",
@@ -35,7 +36,12 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "response": {
+            "responseFormat": "json",
+            "fullResponse": true
+          }
+        }
       },
       "id": "a0d17f29-e310-4ed1-8062-afabfe780ae5",
       "name": "HTTP Request",
@@ -47,7 +53,8 @@
       ],
       "retryOnFail": true,
       "maxTries": 5,
-      "waitBetweenTries": 2000
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -88,7 +95,7 @@
             },
             {
               "name": "body",
-              "value": "=={{ \"Ticket \" + $json.ticket_id + \" con sentimiento \" + $json.sentiment }}"
+              "value": "={{ \"Ticket \" + $json.ticket_id + \" con sentimiento \" + $json.sentiment }}"
             },
             {
               "name": "ticket_id",
@@ -127,6 +134,115 @@
       "retryOnFail": true,
       "maxTries": 5,
       "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.statusCode}}",
+              "operation": "largerEqual",
+              "value2": 400
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "if-http-error",
+      "name": "If HTTP Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "ok",
+              "value": false
+            }
+          ],
+          "number": [
+            {
+              "name": "status",
+              "value": "={{$json.statusCode || $json.status || 500}}"
+            }
+          ],
+          "string": [
+            {
+              "name": "error",
+              "value": "={{$json.body && $json.body.detail ? $json.body.detail : ($json.body && $json.body.error ? $json.body.error : ($json.body && $json.body.message ? $json.body.message : ($json.error && $json.error.message ? $json.error.message : ($json.message || \"Backend error\"))))}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-error-response",
+      "name": "Set Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        208,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "ok",
+              "value": true
+            },
+            {
+              "name": "processed",
+              "value": "={{$json.body.processed}}"
+            }
+          ],
+          "string": [
+            {
+              "name": "ticket_id",
+              "value": "={{$json.body.ticket_id}}"
+            },
+            {
+              "name": "category",
+              "value": "={{$json.body.category}}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{$json.body.sentiment}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-success-response",
+      "name": "Set Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        208,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "passThrough"
+      },
+      "id": "merge-response",
+      "name": "Merge Response",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        480,
+        128
+      ]
     }
   ],
   "pinData": {
@@ -158,7 +274,7 @@
           "query": {},
           "body": {
             "ticket_id": "d3f77bb1-888b-4537-942f-26302190beda",
-            "description": "No puedo iniciar sesión, error 500"
+            "description": "No puedo iniciar sesi\u00f3n, error 500"
           },
           "webhookUrl": "https://devstm77.app.n8n.cloud/webhook/process-ticket",
           "executionMode": "production"
@@ -185,7 +301,7 @@
       "main": [
         [
           {
-            "node": "If",
+            "node": "If HTTP Error",
             "type": "main",
             "index": 0
           }
@@ -200,6 +316,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 1
+          }
         ]
       ]
     },
@@ -213,6 +336,60 @@
           }
         ]
       ]
+    },
+    "If HTTP Error": {
+      "main": [
+        [
+          {
+            "node": "Set Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Success Response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulate Email": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set Error Response": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Response": {
+      "main": []
     }
   },
   "active": true,
