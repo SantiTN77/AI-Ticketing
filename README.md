@@ -1,4 +1,5 @@
-﻿# AI Ticketing - Full-Stack AI Engineer Challenge
+﻿# AI-Powered Support 
+Co-Pilot
 
 Sistema end-to-end para procesar tickets:
 Supabase (DB + realtime) -> n8n (orquestacion) -> Python API (clasificacion con LLM) -> Frontend (UI).
