@@ -1,12 +1,20 @@
 import { useMemo, useState } from 'react'
 
-type ProcessResult = {
-  ticket_id?: string
-  category?: string
-  sentiment?: string
-  processed?: boolean
-  [key: string]: unknown
+type ProcessSuccess = {
+  ok: true
+  ticket_id: string
+  category: string
+  sentiment: string
+  processed: boolean
 }
+
+type ProcessError = {
+  ok: false
+  status?: number
+  error?: string
+}
+
+type ProcessResult = ProcessSuccess | ProcessError
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -54,13 +62,30 @@ export function TicketForm() {
       })
 
       const bodyText = await response.text()
-      if (!response.ok) {
-        setError(`Error ${response.status}: ${bodyText}`)
-        return
-      }
-
       try {
         const parsed = JSON.parse(bodyText) as ProcessResult
+        if ('ok' in parsed && parsed.ok === false) {
+          const status = parsed.status ?? response.status
+          const message = parsed.error || 'Error en webhook'
+          let finalMessage = `Error ${status}: ${message}`
+          if (status === 404) {
+            finalMessage +=
+              '. El ticket_id debe existir en Supabase o usa Crear ticket.'
+          }
+          setError(finalMessage)
+          return
+        }
+
+        if ('ok' in parsed && parsed.ok === true) {
+          setResult(parsed)
+          return
+        }
+
+        if (!response.ok) {
+          setError(`Error ${response.status}: ${bodyText}`)
+          return
+        }
+
         setResult(parsed)
       } catch {
         setError('Respuesta no es JSON valido.')
@@ -73,7 +98,7 @@ export function TicketForm() {
     }
   }
 
-  const sentiment = result?.sentiment
+  const sentiment = result && 'ok' in result && result.ok ? result.sentiment : null
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -127,7 +152,7 @@ export function TicketForm() {
         </div>
       )}
 
-      {result && (
+      {result && 'ok' in result && result.ok && (
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-slate-700">Resultado</span>

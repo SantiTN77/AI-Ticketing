@@ -60,6 +60,16 @@ npm run dev
 2) En la UI, pega UUID + description y presiona Procesar.
 3) Realtime debe actualizar la lista sin refrescar.
 
+### Respuesta del webhook n8n
+Success:
+```json
+{ "ok": true, "ticket_id": "...", "category": "...", "sentiment": "...", "processed": true }
+```
+Error:
+```json
+{ "ok": false, "status": 400, "error": "mensaje" }
+```
+
 ## Configuracion de n8n
 El workflow de n8n tiene las URLs de la API hardcodeadas (las variables de entorno requieren plan de pago en n8n.cloud). El workflow esta configurado para usar `https://ai-powered-support-co-pilot.onrender.com` por defecto.
 
