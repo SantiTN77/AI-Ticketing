@@ -1,0 +1,229 @@
+﻿{
+  "name": "Process Ticket Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-ticket",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "10b582f4-8ef3-4a9e-9ec1-d4fc38625201",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        128
+      ],
+      "webhookId": "180985dd-41c5-4083-a1c9-067c71f3c1de"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-powered-support-co-pilot.onrender.com/process-ticket",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "ticket_id",
+              "value": "={{$node[\"Webhook\"].json.body.ticket_id}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$node[\"Webhook\"].json.body.description}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a0d17f29-e310-4ed1-8062-afabfe780ae5",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -320,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.sentiment}}",
+              "operation": "equal",
+              "value2": "Negativo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1b24a627-8e1e-4e2f-8bfe-4c7dec39d542",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "email_simulated",
+              "value": true
+            }
+          ],
+          "string": [
+            {
+              "name": "subject",
+              "value": "Alerta de ticket negativo"
+            },
+            {
+              "name": "body",
+              "value": "=={{ \"Ticket \" + $json.ticket_id + \" con sentimiento \" + $json.sentiment }}"
+            },
+            {
+              "name": "ticket_id",
+              "value": "={{$json.ticket_id}}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{$json.sentiment}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a81b09ad-0aa5-404f-a4bf-a654de4fa498",
+      "name": "Simulate Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://ai-powered-support-co-pilot.onrender.com/health",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -592,
+        128
+      ],
+      "id": "6db14398-9dec-4d4f-ba4a-03c936d8ed9f",
+      "name": "HTTP Request1",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "devstm77.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CO) WindowsPowerShell/5.1.26100.7462",
+            "content-length": "122",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "181.53.99.92",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "CO",
+            "cf-ray": "9c1bf7a462705c5f-MIA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "181.53.99.92, 172.70.82.209",
+            "x-forwarded-host": "devstm77.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-57-74469c5c59-qrcg5",
+            "x-is-trusted": "yes",
+            "x-real-ip": "181.53.99.92"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "ticket_id": "d3f77bb1-888b-4537-942f-26302190beda",
+            "description": "No puedo iniciar sesión, error 500"
+          },
+          "webhookUrl": "https://devstm77.app.n8n.cloud/webhook/process-ticket",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Simulate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "104c6ce1-6459-4fdf-b42e-cc5cb258dcc8",
+  "meta": {
+    "instanceId": "5e5577b825b3333d180ace89e359b1715dc921b58b40c1970e9a6b1e7123b8fd"
+  },
+  "id": "BWZA_1S6_84Fd0eNPfEfR",
+  "tags": []
+}

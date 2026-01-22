@@ -1,99 +1,41 @@
-﻿# AI-Powered Support Co-Pilot
+﻿# AI Ticketing – Full-Stack AI Engineer Challenge
 
-Sistema capaz de recibir tickets de soporte, procesarlos mediante agentes de IA para categorizarlos y analizar su sentimiento, y visualizarlos en tiempo real en un dashboard.
+Sistema end-to-end para procesar tickets:
+Supabase (DB + realtime) → n8n (orquestación) → Python API (clasificación con LLM) → Frontend (UI).
 
-## Estructura del Proyecto
+## Live URLs
+- Backend API: https://ai-powered-support-co-pilot.onrender.com
+- n8n Webhook (production): https://devstm77.app.n8n.cloud/webhook/process-ticket
 
-```
-/supabase          - Configuración y migraciones de base de datos
-/python-api        - Backend FastAPI
-/frontend          - Frontend React + TypeScript + Vite + Tailwind
-/n8n-workflow      - Flujos de trabajo de automatización
-```
+## Features
+- POST /process-ticket: clasifica category + sentiment y actualiza ticket en Supabase
+- Idempotencia: si el ticket ya está procesado, retorna sin recalcular
+- Healthcheck: GET /health
+- n8n workflow: webhook → warm-up health → POST process-ticket → IF sentiment negativo → simulate email
 
-## Requisitos Previos
+## API Endpoints
+### GET /health
+Respuesta: { "ok": true }
 
-- Node.js 18+ y npm
-- Python 3.11+
-- Git
+### POST /process-ticket
+Body:
+{
+  "ticket_id": "<uuid>",
+  "description": "..."
+}
 
-## Configuración
+Response:
+{
+  "ticket_id": "...",
+  "category": "Tecnico|Facturacion|...",
+  "sentiment": "Negativo|Neutro|Positivo",
+  "processed": true
+}
 
-### Backend (Python API)
-
-1. Navegar a la carpeta `python-api`:
+## Run locally (backend)
 ```bash
 cd python-api
-```
-
-2. Crear un entorno virtual:
-```bash
-python -m venv venv
-```
-
-3. Activar el entorno virtual:
-```bash
-# Windows
-venv\Scripts\activate
-
-# Linux/Mac
-source venv/bin/activate
-```
-
-4. Instalar dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-5. Copiar `.env.example` a `.env` y configurar las variables:
-```bash
-copy .env.example .env
-```
-
-6. Ejecutar el servidor:
-```bash
-uvicorn app.main:app --reload
-```
-
-El servidor estará disponible en `http://localhost:8000`
-
-### Frontend
-
-1. Navegar a la carpeta `frontend`:
-```bash
-cd frontend
-```
-
-2. Instalar dependencias:
-```bash
-npm install
-```
-
-3. Copiar `.env.example` a `.env` y configurar las variables:
-```bash
-copy .env.example .env
-```
-
-4. Ejecutar el servidor de desarrollo:
-```bash
-npm run dev
-```
-
-La aplicación estará disponible en `http://localhost:5173`
-
-## Desarrollo
-
-- Backend: `http://localhost:8000`
-- Frontend: `http://localhost:5173`
-- API Docs: `http://localhost:8000/docs`
-
-## Próximos Pasos
-
-- [ ] Implementar esquemas de base de datos en Supabase
-- [ ] Crear endpoints para tickets de soporte
-- [ ] Integrar agentes de IA para categorización y análisis de sentimiento
-- [ ] Desarrollar dashboard en tiempo real
-- [ ] Configurar flujos de trabajo en n8n
-
-
-
+python -m venv .venv
+# Windows:
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000

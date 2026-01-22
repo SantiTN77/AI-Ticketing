@@ -2,6 +2,7 @@
 uvicorn[standard]
 pydantic
 pydantic-settings
+python-dotenv
 langchain
-supabase
 langchain-google-genai
+supabase

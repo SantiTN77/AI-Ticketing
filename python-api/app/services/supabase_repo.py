@@ -31,3 +31,9 @@ def update_ticket(ticket_id: str, category: str, sentiment: str) -> dict:
     if not data:
         raise RuntimeError("Supabase update returned no data")
     return data[0]
+
+
+def ping_supabase() -> None:
+    response = _client.table("tickets").select("id").limit(1).execute()
+    if getattr(response, "error", None):
+        raise RuntimeError("Supabase ping failed")

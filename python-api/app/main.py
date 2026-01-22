@@ -1,17 +1,72 @@
-﻿from uuid import UUID
+﻿import logging
+from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from app.core.config import settings
 from app.schemas.tickets import TicketProcessRequest, TicketProcessResponse
 from app.services.llm_classifier import LLMError, classify_ticket, ping_gemini
-from app.services.supabase_repo import get_ticket, update_ticket
+from app.services.supabase_repo import get_ticket, ping_supabase, update_ticket
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger("app")
+
+
+def _parse_origins(raw: str) -> list[str]:
+    origins = [item.strip() for item in raw.split(",") if item.strip()]
+    return origins
+
+
+allowed_origins = _parse_origins(settings.ALLOWED_ORIGINS)
+if not allowed_origins and settings.APP_ENV != "production":
+    allowed_origins = ["http://localhost:5173", "http://localhost:3000"]
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = request.headers.get("x-request-id", "")
+    response = await call_next(request)
+    if request_id:
+        response.headers["x-request-id"] = request_id
+    logger.info(
+        "request completed method=%s path=%s request_id=%s",
+        request.method,
+        request.url.path,
+        request_id,
+    )
+    return response
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("unhandled error path=%s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "internal error"})
 
 
 @app.get("/health")
 def health() -> dict:
     return {"ok": True}
+
+
+@app.get("/ready")
+def ready() -> dict:
+    try:
+        ping_supabase()
+        return {"ok": True}
+    except Exception:
+        raise HTTPException(status_code=503, detail="supabase unavailable")
 
 
 @app.post("/process-ticket", response_model=TicketProcessResponse)
@@ -67,6 +122,8 @@ def process_ticket(payload: TicketProcessRequest) -> TicketProcessResponse:
 
 @app.get("/debug/gemini")
 def debug_gemini() -> dict:
+    if settings.APP_ENV == "production":
+        raise HTTPException(status_code=404, detail="not found")
     try:
         ping_gemini()
         return {"ok": True}
