@@ -56,9 +56,9 @@ npm run dev
 ```
 
 ### Probar flujo
-1) Crea un ticket en Supabase (Table Editor) y copia el UUID.
-2) En la UI, pega UUID + description y presiona Procesar.
-3) Realtime debe actualizar la lista sin refrescar.
+1) Crear ticket (boton "Crear ticket") con description.
+2) Procesar (usa el ticket_id generado y llama al webhook).
+3) Ver realtime update en la lista sin refrescar.
 
 ### Respuesta del webhook n8n
 Success:

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 type ProcessSuccess = {
   ok: true
@@ -23,6 +24,8 @@ export function TicketForm() {
   const [ticketId, setTicketId] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState('')
   const [error, setError] = useState('')
   const [result, setResult] = useState<ProcessResult | null>(null)
 
@@ -33,6 +36,7 @@ export function TicketForm() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError('')
+    setCreateError('')
     setResult(null)
 
     if (!ticketId.trim() || !description.trim()) {
@@ -98,6 +102,37 @@ export function TicketForm() {
     }
   }
 
+  async function handleCreateTicket() {
+    setCreateError('')
+    setResult(null)
+
+    if (!description.trim()) {
+      setCreateError('Agrega una description para crear el ticket.')
+      return
+    }
+
+    setCreating(true)
+    try {
+      const { data, error: insertError } = await supabase
+        .from('tickets')
+        .insert({ description: description.trim(), processed: false })
+        .select('id')
+        .single()
+
+      if (insertError || !data?.id) {
+        setCreateError('No se pudo crear el ticket. Intenta de nuevo.')
+        return
+      }
+
+      setTicketId(data.id)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear ticket'
+      setCreateError(message)
+    } finally {
+      setCreating(false)
+    }
+  }
+
   const sentiment = result && 'ok' in result && result.ok ? result.sentiment : null
 
   return (
@@ -144,7 +179,21 @@ export function TicketForm() {
         >
           {loading ? 'Procesando...' : 'Procesar'}
         </button>
+        <button
+          type="button"
+          onClick={handleCreateTicket}
+          disabled={creating || Boolean(ticketId.trim())}
+          className="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition disabled:opacity-60"
+        >
+          {creating ? 'Creando...' : 'Crear ticket'}
+        </button>
       </form>
+
+      {createError && (
+        <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+          {createError}
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
