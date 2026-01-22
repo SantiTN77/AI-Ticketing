@@ -1,4 +1,4 @@
-﻿# AI Ticketing – Full-Stack AI Engineer Challenge
+# AI Ticketing – Full-Stack AI Engineer Challenge
 
 Sistema end-to-end para procesar tickets:
 Supabase (DB + realtime) → n8n (orquestación) → Python API (clasificación con LLM) → Frontend (UI).
@@ -39,3 +39,12 @@ python -m venv .venv
 # Windows:
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
+
+## Configuración de n8n
+
+El workflow de n8n tiene las URLs de la API hardcodeadas (las variables de entorno requieren plan de pago en n8n.cloud). El workflow está configurado para usar `https://ai-powered-support-co-pilot.onrender.com` por defecto.
+
+Para desarrollo local, edita `workflow.json` y reemplaza las URLs antes de importar.
+
+Ver `n8n-workflow/README.md` para instrucciones detalladas.
