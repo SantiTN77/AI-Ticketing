@@ -1,56 +1,50 @@
-﻿# AI-Powered Support Co-Pilot
+# AI-Powered Support Co-Pilot
 
-Sistema **end-to-end** para procesar tickets:
+Sistema **end-to-end** para procesar tickets con IA y ver cambios en **tiempo real**:
 
-**Supabase (Postgres + Realtime)** -> **n8n (orquestacion)** -> **Python API (FastAPI + LLM)** -> **Frontend (React/Vite Dashboard)**
+**Supabase (Postgres + Realtime)** → **n8n (orquestación)** → **Python API (FastAPI + Gemini LLM)** → **Frontend (React 18 + TS + Vite + Tailwind)**
 
 ---
 
 ## Live URLs (obligatorio)
 
 - **Dashboard (Vercel):** https://ai-ticketing-ten.vercel.app/
-- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com
+- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com/health)
+- **OpenAPI / Swagger:** https://ai-powered-support-co-pilot.onrender.com/docs
 
 ---
 
-## Arquitectura (vision rapida)
+## Arquitectura (visión rápida)
 
-1. El usuario crea un ticket en el dashboard (Supabase).
-2. El dashboard envia `ticket_id` + `description` al **Webhook de n8n**.
-3. n8n llama a la **API** `POST /process-ticket`.
-4. La API clasifica (categoria + sentimiento) con LLM y actualiza el ticket en Supabase.
+1. El usuario crea un ticket en el dashboard (se inserta en Supabase).
+2. El usuario procesa el ticket (dashboard envía `ticket_id` + `description` al Webhook de n8n).
+3. n8n hace warm-up (`GET /health`) y llama a la API (`POST /process-ticket`).
+4. La API clasifica con **Gemini** (categoría + sentimiento) y actualiza el ticket en Supabase.
 5. Supabase Realtime actualiza la tabla en UI sin refrescar.
-6. Si sentimiento = **Negativo**, n8n ejecuta “email simulado”.
-7. **PLUS:** si es Negativo, n8n envia alerta a Discord.
+6. Si el sentimiento es **Negativo**, n8n ejecuta un “email simulado” (y puede incluir un PLUS: alerta a Discord,
+Servidor para prueba alerta Discord: https://discord.gg/N5UCkppd)
 
 ---
 
-## Estructura del repositorio (obligatorio)
+## Features clave (evaluación)
 
-- `/supabase` -> `setup.sql`
-- `/python-api` -> FastAPI + `requirements.txt` (+ `Dockerfile` si aplica)
-- `/n8n-workflow` -> `workflow.json` (sin credenciales) + docs
-- `/frontend` -> dashboard (React 18 + TypeScript + Vite + Tailwind)
-
----
-
-## Features
-
-- **POST `/process-ticket`**: clasifica `category` + `sentiment` y actualiza el ticket en Supabase.
-- **Idempotencia**: si `processed=true`, retorna el resultado sin recalcular.
-- **Healthcheck**: **GET `/health`**.
-- **n8n workflow**: Webhook -> (opcional warm-up health) -> POST process-ticket -> IF `sentiment=Negativo` -> simulate email + alerta Discord.
+- **Funcionalidad End-to-End:** ticket entra → se clasifica → se actualiza en DB → se visualiza en UI realtime.
+- **Calidad del microservicio (FastAPI):**
+  - Validaciones claras (400/404/422).
+  - Manejo de errores controlado (502 cuando el proveedor LLM falla).
+  - Tipado (Pydantic) + salida estructurada.
+  - **Idempotencia:** si `processed=true`, no recalcula ni llama al LLM.
+- **Dominio ecosistema:** Supabase + n8n + frontend integrados.
+- **DevOps básico:** API desplegada en Render, Dashboard en Vercel.
 
 ---
 
 ## API Endpoints
 
 ### `GET /health`
-
-**Response**
+**Respuesta**
 ```json
 { "ok": true }
-```
 
 ### `POST /process-ticket`
 
