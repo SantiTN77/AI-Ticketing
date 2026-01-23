@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
 type TicketRow = {
@@ -13,30 +13,32 @@ type TicketRow = {
 
 const MAX_ITEMS = 20
 
+async function selectTickets(select: string): Promise<TicketRow[] | null> {
+  const { data, error } = await supabase.from('tickets').select(select).limit(MAX_ITEMS)
+  if (error || !data) {
+    return null
+  }
+  return data as TicketRow[]
+}
+
 async function fetchTickets(): Promise<TicketRow[]> {
-  const queries = [
-    {
-      select: 'id, description, category, sentiment, processed, updated_at, created_at',
-      order: { column: 'updated_at', ascending: false },
-    },
-    {
-      select: 'id, description, category, sentiment, processed, created_at',
-      order: { column: 'created_at', ascending: false },
-    },
-    {
-      select: 'id, description, category, sentiment, processed',
-      order: null as null | { column: string; ascending: boolean },
-    },
+  const attempts = [
+    'id, description, category, sentiment, processed, updated_at, created_at',
+    'id, description, category, sentiment, processed, created_at',
+    'id, description, category, sentiment, processed',
   ]
 
-  for (const query of queries) {
-    let builder = supabase.from('tickets').select(query.select).limit(MAX_ITEMS)
-    if (query.order) {
-      builder = builder.order(query.order.column, { ascending: query.order.ascending })
-    }
-    const { data, error } = await builder
-    if (!error && data) {
-      return data as TicketRow[]
+  for (const select of attempts) {
+    const rows = await selectTickets(select)
+    if (rows) {
+      return [...rows].sort((a, b) => {
+        const aDate = a.updated_at || a.created_at || ''
+        const bDate = b.updated_at || b.created_at || ''
+        if (!aDate && !bDate) {
+          return b.id.localeCompare(a.id)
+        }
+        return bDate.localeCompare(aDate)
+      })
     }
   }
 
@@ -95,7 +97,11 @@ export function TicketsRealtime() {
           })
         },
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setError('Realtime no disponible. Revisa politicas o conexion.')
+        }
+      })
 
     return () => {
       isMounted = false

@@ -7,6 +7,9 @@ type ProcessSuccess = {
   category: string
   sentiment: string
   processed: boolean
+  email_simulated?: boolean
+  subject?: string
+  body?: string
 }
 
 type ProcessError = {
@@ -26,6 +29,7 @@ export function TicketForm() {
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
+  const [info, setInfo] = useState('')
   const [error, setError] = useState('')
   const [result, setResult] = useState<ProcessResult | null>(null)
 
@@ -36,6 +40,7 @@ export function TicketForm() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError('')
+    setInfo('')
     setCreateError('')
     setResult(null)
 
@@ -54,51 +59,135 @@ export function TicketForm() {
       return
     }
 
+    const maxAttempts = 3
+    const shouldRetry = (status?: number, message?: string) => {
+      if (!status) return false
+      if (status >= 500) return true
+      if (message && message.includes('No item to return was found')) return true
+      return false
+    }
+
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
     setLoading(true)
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ticket_id: ticketId.trim(),
-          description: description.trim(),
-        }),
-      })
-
-      const bodyText = await response.text()
-      try {
-        const parsed = JSON.parse(bodyText) as ProcessResult
-        if ('ok' in parsed && parsed.ok === false) {
-          const status = parsed.status ?? response.status
-          const message = parsed.error || 'Error en webhook'
-          let finalMessage = `Error ${status}: ${message}`
-          if (status === 404) {
-            finalMessage +=
-              '. El ticket_id debe existir en Supabase o usa Crear ticket.'
-          }
-          setError(finalMessage)
-          return
+      let lastRetryableStatus: number | undefined
+      let lastRetryableMessage = ''
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        if (attempt > 1) {
+          setInfo(`Reintentando... (${attempt}/${maxAttempts})`)
+          await sleep(1500 * attempt)
         }
 
-        if ('ok' in parsed && parsed.ok === true) {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticket_id: ticketId.trim(),
+            description: description.trim(),
+          }),
+        })
+
+        const bodyText = await response.text()
+        try {
+          const parsed = JSON.parse(bodyText) as ProcessResult
+          if ('ok' in parsed && parsed.ok === false) {
+            const status = parsed.status ?? response.status
+            const message = parsed.error || 'Error en webhook'
+            if (shouldRetry(status, message) && attempt < maxAttempts) {
+              lastRetryableStatus = status
+              lastRetryableMessage = message
+              continue
+            }
+            if (shouldRetry(status, message)) {
+              lastRetryableStatus = status
+              lastRetryableMessage = message
+              break
+            }
+            let finalMessage = `Error ${status}: ${message}`
+            if (status === 404) {
+              finalMessage +=
+                '. El ticket_id debe existir en Supabase o usa Crear ticket.'
+            }
+            setError(finalMessage)
+            return
+          }
+
+          if ('ok' in parsed && parsed.ok === true) {
+            setResult(parsed)
+            return
+          }
+
+          if (!response.ok) {
+            if (shouldRetry(response.status, bodyText) && attempt < maxAttempts) {
+              lastRetryableStatus = response.status
+              lastRetryableMessage = bodyText
+              continue
+            }
+            if (shouldRetry(response.status, bodyText)) {
+              lastRetryableStatus = response.status
+              lastRetryableMessage = bodyText
+              break
+            }
+            setError(`Error ${response.status}: ${bodyText}`)
+            return
+          }
+
           setResult(parsed)
           return
-        }
-
-        if (!response.ok) {
-          setError(`Error ${response.status}: ${bodyText}`)
+        } catch {
+          if (shouldRetry(response.status, bodyText) && attempt < maxAttempts) {
+            lastRetryableStatus = response.status
+            lastRetryableMessage = bodyText
+            continue
+          }
+          if (shouldRetry(response.status, bodyText)) {
+            lastRetryableStatus = response.status
+            lastRetryableMessage = bodyText
+            break
+          }
+          setError('Respuesta no es JSON valido.')
           return
         }
+      }
 
-        setResult(parsed)
-      } catch {
-        setError('Respuesta no es JSON valido.')
+      if (lastRetryableMessage) {
+        setInfo('Procesando en segundo plano... (Render puede tardar ~50s)')
+      }
+      const pollAttempts = 10
+      for (let i = 0; i < pollAttempts; i += 1) {
+        await sleep(3000)
+        const { data } = await supabase
+          .from('tickets')
+          .select('id, category, sentiment, processed')
+          .eq('id', ticketId.trim())
+          .single()
+
+        if (data?.processed) {
+          setResult({
+            ok: true,
+            ticket_id: data.id,
+            category: data.category,
+            sentiment: data.sentiment,
+            processed: data.processed,
+          })
+          setError('')
+          return
+        }
+      }
+
+      if (lastRetryableMessage) {
+        const statusText = lastRetryableStatus ? `Error ${lastRetryableStatus}` : 'Error'
+        setError(`${statusText}: ${lastRetryableMessage}`)
+      } else {
+        setError('No se pudo procesar el ticket. Intenta de nuevo.')
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error de red'
       setError(message)
     } finally {
       setLoading(false)
+      setInfo('')
     }
   }
 
@@ -134,6 +223,8 @@ export function TicketForm() {
   }
 
   const sentiment = result && 'ok' in result && result.ok ? result.sentiment : null
+  const emailSimulated =
+    result && 'ok' in result && result.ok ? result.email_simulated : false
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -200,6 +291,11 @@ export function TicketForm() {
           {error}
         </div>
       )}
+      {info && (
+        <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+          {info}
+        </div>
+      )}
 
       {result && 'ok' in result && result.ok && (
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
@@ -211,6 +307,11 @@ export function TicketForm() {
               </span>
             )}
           </div>
+          {emailSimulated && (
+            <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700">
+              Aviso: se simulo el envio de correo a soporte.
+            </div>
+          )}
           <pre className="mt-3 whitespace-pre-wrap text-xs text-slate-700">
             {JSON.stringify(result, null, 2)}
           </pre>

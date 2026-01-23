@@ -80,7 +80,7 @@
     },
     {
       "parameters": {
-        "keepOnlySet": true,
+        "keepOnlySet": false,
         "values": {
           "boolean": [
             {
@@ -133,7 +133,8 @@
       "name": "HTTP Request1",
       "retryOnFail": true,
       "maxTries": 5,
-      "waitBetweenTries": 2000
+      "waitBetweenTries": 2000,
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -233,15 +234,24 @@
     },
     {
       "parameters": {
-        "mode": "passThrough"
+        "keepOnlySet": false,
+        "values": {
+          "boolean": [
+            {
+              "name": "email_simulated",
+              "value": false
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "merge-response",
-      "name": "Merge Response",
-      "type": "n8n-nodes-base.merge",
+      "id": "9224dd5a-bfb0-4526-8a93-c42fd5926487",
+      "name": "Set No Email",
+      "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        480,
-        128
+        208,
+        240
       ]
     }
   ],
@@ -319,9 +329,9 @@
         ],
         [
           {
-            "node": "Merge Response",
+            "node": "Set No Email",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -367,28 +377,12 @@
       ]
     },
     "Simulate Email": {
-      "main": [
-        [
-          {
-            "node": "Merge Response",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
+      "main": []
     },
     "Set Error Response": {
-      "main": [
-        [
-          {
-            "node": "Merge Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": []
     },
-    "Merge Response": {
+    "Set No Email": {
       "main": []
     }
   },
