@@ -84,6 +84,7 @@ def process_ticket(payload: TicketProcessRequest) -> TicketProcessResponse:
         raise HTTPException(status_code=404, detail="ticket no encontrado")
 
     if ticket.get("processed"):
+        logger.info("idempotent_return ticket_id=%s", payload.ticket_id)
         if not ticket.get("category") or not ticket.get("sentiment"):
             raise HTTPException(
                 status_code=500,
@@ -96,6 +97,7 @@ def process_ticket(payload: TicketProcessRequest) -> TicketProcessResponse:
             processed=True,
         )
 
+    logger.info("classify_ticket ticket_id=%s", payload.ticket_id)
     try:
         analysis = classify_ticket(payload.description)
     except LLMError as exc:

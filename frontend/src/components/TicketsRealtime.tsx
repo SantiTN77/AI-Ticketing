@@ -31,6 +31,7 @@ async function fetchTickets(): Promise<{ rows: TicketRow[]; error?: string }> {
     'id, description, category, sentiment, processed',
   ]
 
+  let lastError = ''
   for (const select of attempts) {
     const { rows, error } = await selectTickets(select)
     if (rows) {
@@ -44,12 +45,12 @@ async function fetchTickets(): Promise<{ rows: TicketRow[]; error?: string }> {
       })
       return { rows: sorted }
     }
-    if (!rows && error) {
-      return { rows: [], error }
+    if (error) {
+      lastError = error
     }
   }
 
-  return { rows: [], error: 'No se pudo cargar tickets.' }
+  return { rows: [], error: lastError || 'No se pudo cargar tickets.' }
 }
 
 export function TicketsRealtime() {

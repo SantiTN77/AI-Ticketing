@@ -6,16 +6,15 @@
         "httpMethod": "POST",
         "path": "process-ticket",
         "responseMode": "lastNode",
-        "options": {},
-        "responseData": "firstEntryJson"
+        "options": {}
       },
-      "id": "10b582f4-8ef3-4a9e-9ec1-d4fc38625201",
+      "id": "8b0d17fa-0774-4c7a-b66f-9da98e1d4823",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        -800,
-        128
+        64,
+        752
       ],
       "webhookId": "180985dd-41c5-4083-a1c9-067c71f3c1de"
     },
@@ -38,18 +37,19 @@
         },
         "options": {
           "response": {
-            "responseFormat": "json",
-            "fullResponse": true
+            "response": {
+              "fullResponse": true
+            }
           }
         }
       },
-      "id": "a0d17f29-e310-4ed1-8062-afabfe780ae5",
+      "id": "29da97f9-7164-46cc-b5f1-99d24c1ccd11",
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        -320,
-        128
+        512,
+        752
       ],
       "retryOnFail": true,
       "maxTries": 5,
@@ -69,18 +69,17 @@
         },
         "options": {}
       },
-      "id": "1b24a627-8e1e-4e2f-8bfe-4c7dec39d542",
+      "id": "a396e0ba-8c97-4878-9efc-e1e5683301a5",
       "name": "If",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -48,
-        128
+        1184,
+        848
       ]
     },
     {
       "parameters": {
-        "keepOnlySet": false,
         "values": {
           "boolean": [
             {
@@ -109,13 +108,13 @@
         },
         "options": {}
       },
-      "id": "a81b09ad-0aa5-404f-a4bf-a654de4fa498",
+      "id": "5da2c081-78e9-4736-98bd-b2488f399f76",
       "name": "Simulate Email",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        208,
-        0
+        1408,
+        752
       ]
     },
     {
@@ -126,10 +125,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -592,
-        128
+        288,
+        752
       ],
-      "id": "6db14398-9dec-4d4f-ba4a-03c936d8ed9f",
+      "id": "c7d85c74-f1dc-42b8-bd7a-6fe7af08b953",
       "name": "HTTP Request1",
       "retryOnFail": true,
       "maxTries": 5,
@@ -139,23 +138,35 @@
     {
       "parameters": {
         "conditions": {
-          "number": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
             {
-              "value1": "={{$json.statusCode}}",
-              "operation": "largerEqual",
-              "value2": 400
+              "id": "098bcd05-8626-4b88-b1f4-6a0157cbcf87",
+              "leftValue": "=={{ ($json.statusCode ?? 200) }}",
+              "rightValue": "400",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         },
         "options": {}
       },
-      "id": "if-http-error",
+      "id": "8b402bda-e4c5-45f9-ba60-28393e2a9a09",
       "name": "If HTTP Error",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -32,
-        128
+        736,
+        752
       ]
     },
     {
@@ -164,32 +175,31 @@
         "values": {
           "boolean": [
             {
-              "name": "ok",
-              "value": false
+              "name": "ok"
             }
           ],
           "number": [
             {
               "name": "status",
-              "value": "={{$json.statusCode || $json.status || 500}}"
+              "value": "={{$json.statusCode}}"
             }
           ],
           "string": [
             {
               "name": "error",
-              "value": "={{$json.body && $json.body.detail ? $json.body.detail : ($json.body && $json.body.error ? $json.body.error : ($json.body && $json.body.message ? $json.body.message : ($json.error && $json.error.message ? $json.error.message : ($json.message || \"Backend error\"))))}}"
+              "value": "={{$json.body?.detail || $json.body?.message || \"Backend error\"}}"
             }
           ]
         },
         "options": {}
       },
-      "id": "set-error-response",
+      "id": "454b8058-3437-49c4-a9d3-8c4ba4c55dea",
       "name": "Set Error Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        208,
-        20
+        960,
+        656
       ]
     },
     {
@@ -223,78 +233,37 @@
         },
         "options": {}
       },
-      "id": "set-success-response",
+      "id": "7b6f84a1-21b7-44a4-969f-a932362ceecd",
       "name": "Set Success Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        208,
-        220
+        960,
+        848
       ]
     },
     {
       "parameters": {
-        "keepOnlySet": false,
         "values": {
           "boolean": [
             {
-              "name": "email_simulated",
-              "value": false
+              "name": "email_simulated"
             }
           ]
         },
         "options": {}
       },
-      "id": "9224dd5a-bfb0-4526-8a93-c42fd5926487",
+      "id": "c90ead34-8bd6-44a4-a2a3-2764132607c6",
       "name": "Set No Email",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        208,
-        240
+        1408,
+        944
       ]
     }
   ],
-  "pinData": {
-    "Webhook": [
-      {
-        "json": {
-          "headers": {
-            "host": "devstm77.app.n8n.cloud",
-            "user-agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-CO) WindowsPowerShell/5.1.26100.7462",
-            "content-length": "122",
-            "accept-encoding": "gzip, br",
-            "cdn-loop": "cloudflare; loops=1; subreqs=1",
-            "cf-connecting-ip": "181.53.99.92",
-            "cf-ew-via": "15",
-            "cf-ipcountry": "CO",
-            "cf-ray": "9c1bf7a462705c5f-MIA",
-            "cf-visitor": "{\"scheme\":\"https\"}",
-            "cf-worker": "n8n.cloud",
-            "content-type": "application/json",
-            "x-forwarded-for": "181.53.99.92, 172.70.82.209",
-            "x-forwarded-host": "devstm77.app.n8n.cloud",
-            "x-forwarded-port": "443",
-            "x-forwarded-proto": "https",
-            "x-forwarded-server": "traefik-prod-users-gwc-57-74469c5c59-qrcg5",
-            "x-is-trusted": "yes",
-            "x-real-ip": "181.53.99.92"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "ticket_id": "d3f77bb1-888b-4537-942f-26302190beda",
-            "description": "No puedo iniciar sesi\u00f3n, error 500"
-          },
-          "webhookUrl": "https://devstm77.app.n8n.cloud/webhook/process-ticket",
-          "executionMode": "production"
-        },
-        "pairedItem": {
-          "item": 0
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Webhook": {
       "main": [
@@ -375,15 +344,6 @@
           }
         ]
       ]
-    },
-    "Simulate Email": {
-      "main": []
-    },
-    "Set Error Response": {
-      "main": []
-    },
-    "Set No Email": {
-      "main": []
     }
   },
   "active": true,
@@ -391,10 +351,10 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "104c6ce1-6459-4fdf-b42e-cc5cb258dcc8",
+  "versionId": "e3cf9c26-ac0a-4846-8ac4-91c529651c06",
   "meta": {
     "instanceId": "5e5577b825b3333d180ace89e359b1715dc921b58b40c1970e9a6b1e7123b8fd"
   },
   "id": "BWZA_1S6_84Fd0eNPfEfR",
   "tags": []
-}
+} 
