@@ -84,7 +84,7 @@ export function TicketsRealtime() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tickets' },
-        (payload) => {
+        (payload: { new?: TicketRow; old?: TicketRow }) => {
           const row = (payload.new || payload.old) as TicketRow
           if (!row?.id) return
           setTickets((current) => {
@@ -99,7 +99,7 @@ export function TicketsRealtime() {
           })
         },
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setError('Realtime no disponible. Revisa politicas o conexion.')
         }
