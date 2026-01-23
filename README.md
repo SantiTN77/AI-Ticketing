@@ -11,6 +11,7 @@ Sistema **end-to-end** para procesar tickets con IA y ver cambios en **tiempo re
 - **Dashboard (Vercel):** https://ai-ticketing-ten.vercel.app/
 - **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com/health)
 - **OpenAPI / Swagger:** https://ai-powered-support-co-pilot.onrender.com/docs
+-**Recuerda acceder a la url de la API python en render antes de probar el Dashboard, para que Render despierte, (Limitacion temporal por plan gratuito).**
 
 ---
 
