@@ -61,7 +61,8 @@
         "httpMethod": "POST",
         "path": "process-ticket",
         "responseMode": "lastNode",
-        "options": {}
+        "options": {},
+        "responseData": "firstEntryJson"
       },
       "id": "496ad3b7-5017-4a33-8cfa-3307e3a144ed",
       "name": "Webhook1",
@@ -193,25 +194,13 @@
     {
       "parameters": {
         "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
+          "number": [
             {
-              "id": "4a76412d-8ad2-432b-b76b-a6e8d5475536",
-              "leftValue": "=={{ ($json.statusCode ?? 200) }}",
-              "rightValue": "400",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
+              "value1": "={{$json.statusCode || $json.status || 500}}",
+              "operation": "largerEqual",
+              "value2": 400
             }
-          ],
-          "combinator": "and"
+          ]
         },
         "options": {}
       },
@@ -316,6 +305,22 @@
         1776,
         1648
       ]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "webhookUri": "<DISCORD_WEBHOOK_URL>",
+        "content": "={{\"ALERTA Ticket negativo\" + \"\nID: \" + $json.ticket_id + \"\nCategoria: \" + $json.category + \"\nSentimiento: \" + $json.sentiment + \"\nDescripcion: \" + $node[\"Webhook1\"].json.body.description + \"\nTimestamp: \" + $now}}",
+        "options": {}
+      },
+      "id": "413bc009-68c9-40fe-a311-4a08adaf7e47",
+      "name": "Discord Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        1456
+      ]
     }
   ],
   "pinData": {},
@@ -417,6 +422,29 @@
           }
         ]
       ]
+    },
+    "Simulate Email1": {
+      "main": [
+        [
+          {
+            "node": "Discord Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Alert": {
+      "main": []
+    },
+    "Set No Email1": {
+      "main": []
+    },
+    "Set Error Response1": {
+      "main": []
+    },
+    "Set Health Error": {
+      "main": []
     }
   },
   "active": true,
