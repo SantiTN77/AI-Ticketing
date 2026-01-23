@@ -1,5 +1,4 @@
-﻿import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
-import { Copy } from 'lucide-react'
+﻿import { Copy } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { formatDate } from '../utils/date'
@@ -20,14 +19,12 @@ const MAX_ITEMS = 20
 async function selectTickets(
   select: string,
 ): Promise<{ rows: TicketRow[] | null; error?: string }> {
-  const { data, error } = await supabase
-    .from<TicketRow>('tickets')
-    .select(select)
-    .limit(MAX_ITEMS)
+  const { data, error } = await supabase.from('tickets').select(select).limit(MAX_ITEMS)
   if (error || !data) {
     return { rows: null, error: error?.message || 'No data' }
   }
-  return { rows: data as TicketRow[] }
+  const rows = Array.isArray(data) ? (data as unknown as TicketRow[]) : []
+  return { rows }
 }
 
 async function fetchTickets(): Promise<{ rows: TicketRow[]; error?: string }> {
@@ -85,13 +82,12 @@ export function TicketsRealtime() {
 
     load()
 
-    const channel = supabase
-      .channel('tickets-changes')
+    const channel = (supabase.channel('tickets-changes') as any)
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         { event: '*', schema: 'public', table: 'tickets' },
-        (payload: RealtimePostgresChangesPayload<TicketRow>) => {
-          const row = (payload.new || payload.old) as TicketRow
+        (payload: any) => {
+          const row = (payload?.new || payload?.old) as TicketRow
           if (!row?.id) return
           setTickets((current) => {
             const existingIndex = current.findIndex((item) => item.id === row.id)
