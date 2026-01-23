@@ -9,7 +9,7 @@ Sistema **end-to-end** para procesar tickets:
 ## Live URLs (obligatorio)
 
 - **Dashboard (Vercel):** https://ai-ticketing-ten.vercel.app/
-- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com
+- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com/health
 
 ---
 
