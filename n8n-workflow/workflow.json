@@ -321,6 +321,102 @@
         2000,
         1456
       ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "ok",
+              "value": true
+            },
+            {
+              "name": "processed",
+              "value": "={{$node[\"Set Success Response1\"].json.processed}}"
+            },
+            {
+              "name": "email_simulated",
+              "value": true
+            }
+          ],
+          "string": [
+            {
+              "name": "ticket_id",
+              "value": "={{$node[\"Set Success Response1\"].json.ticket_id}}"
+            },
+            {
+              "name": "category",
+              "value": "={{$node[\"Set Success Response1\"].json.category}}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{$node[\"Set Success Response1\"].json.sentiment}}"
+            },
+            {
+              "name": "subject",
+              "value": "={{$node[\"Simulate Email1\"].json.subject}}"
+            },
+            {
+              "name": "body",
+              "value": "={{$node[\"Simulate Email1\"].json.body}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6b29ede3-fa56-4f61-9d70-fd303f51ed97",
+      "name": "Set Final Response (Negative)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "ok",
+              "value": true
+            },
+            {
+              "name": "processed",
+              "value": "={{$node[\"Set Success Response1\"].json.processed}}"
+            },
+            {
+              "name": "email_simulated",
+              "value": false
+            }
+          ],
+          "string": [
+            {
+              "name": "ticket_id",
+              "value": "={{$node[\"Set Success Response1\"].json.ticket_id}}"
+            },
+            {
+              "name": "category",
+              "value": "={{$node[\"Set Success Response1\"].json.category}}"
+            },
+            {
+              "name": "sentiment",
+              "value": "={{$node[\"Set Success Response1\"].json.sentiment}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "517d7edd-dce3-4ca2-9866-6dfec28e6268",
+      "name": "Set Final Response (No Email)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        1648
+      ]
     }
   ],
   "pinData": {},
@@ -435,15 +531,37 @@
       ]
     },
     "Discord Alert": {
-      "main": []
+      "main": [
+        [
+          {
+            "node": "Set Final Response (Negative)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Set No Email1": {
-      "main": []
+      "main": [
+        [
+          {
+            "node": "Set Final Response (No Email)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Set Error Response1": {
       "main": []
     },
     "Set Health Error": {
+      "main": []
+    },
+    "Set Final Response (Negative)": {
+      "main": []
+    },
+    "Set Final Response (No Email)": {
       "main": []
     }
   },

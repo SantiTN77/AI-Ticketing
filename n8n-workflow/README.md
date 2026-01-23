@@ -42,7 +42,8 @@ Si quieres usar el workflow con una API local, edita el archivo `workflow.json` 
 5. **If HTTP Error**: retorna error estandar si la API falla.
 6. **If**: verifica si el sentimiento es "Negativo".
 7. **Simulate Email**: si es negativo, simula el envio de un email.
-8. **Discord Alert**: envia alerta a Discord si el sentimiento es negativo.
+8. **Discord Alert (PLUS)**: envia alerta a Discord si el sentimiento es negativo.
+9. **Set Final Response**: asegura que el webhook devuelve el JSON completo al frontend.
 
 ## Nota sobre variables de entorno
 
