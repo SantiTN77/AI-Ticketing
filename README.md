@@ -1,5 +1,4 @@
-﻿# AI-Powered Support 
-Co-Pilot
+﻿# AI-Powered Support Co-Pilot
 
 Sistema end-to-end para procesar tickets:
 Supabase (DB + realtime) -> n8n (orquestacion) -> Python API (clasificacion con LLM) -> Frontend (UI).
@@ -55,10 +54,11 @@ npm install
 npm run dev
 ```
 
-### Probar flujo
-1) Crear ticket (boton "Crear ticket") con description.
+### Demo paso a paso
+1) Crear ticket (modal "Crear ticket") con descripcion.
 2) Procesar (usa el ticket_id generado y llama al webhook).
-3) Ver realtime update en la lista sin refrescar.
+3) Ver realtime update en la tabla sin refrescar.
+4) Reprocesar el mismo ticket para validar idempotencia.
 
 ### Respuesta del webhook n8n
 Success:
@@ -69,6 +69,12 @@ Error:
 ```json
 { "ok": false, "status": 400, "error": "mensaje" }
 ```
+
+### Screenshots sugeridos
+- Header + layout general (desktop)
+- Modal de "Crear ticket" abierto
+- Resultado con sentimiento negativo y badge de email simulado
+- Tabla realtime con filtros
 
 ## Configuracion de n8n
 El workflow de n8n tiene las URLs de la API hardcodeadas (las variables de entorno requieren plan de pago en n8n.cloud). El workflow esta configurado para usar `https://ai-powered-support-co-pilot.onrender.com` por defecto.
