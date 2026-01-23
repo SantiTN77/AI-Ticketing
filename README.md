@@ -4,8 +4,8 @@ Sistema end-to-end para procesar tickets:
 Supabase (DB + realtime) -> n8n (orquestacion) -> Python API (clasificacion con LLM) -> Frontend (UI).
 
 ## Live URLs
-- Backend API: https://ai-powered-support-co-pilot.onrender.com
-- n8n Webhook (production): https://devstm77.app.n8n.cloud/webhook/process-ticket
+- Dashboard: https://ai-ticketing-ten.vercel.app/
+- API: https://ai-powered-support-co-pilot.onrender.com
 
 ## Features
 - POST /process-ticket: clasifica category + sentiment y actualiza ticket en Supabase
@@ -75,6 +75,18 @@ Error:
 - Modal de "Crear ticket" abierto
 - Resultado con sentimiento negativo y badge de email simulado
 - Tabla realtime con filtros
+
+## Prompt Engineering (clasificacion)
+- Structured output con schema Pydantic para category/sentiment.
+- Enums/taxonomia cerrada para evitar alucinaciones.
+- Prompt corto con reglas y salida estricta en JSON.
+- Validacion de esquema y manejo de errores (si no valida -> error controlado).
+- Idempotencia: si processed=true no llama al LLM y retorna lo almacenado.
+
+## Deploy notes
+- Backend en Render
+- Frontend en Vercel
+- Orquestacion en n8n Cloud
 
 ## Configuracion de n8n
 El workflow de n8n tiene las URLs de la API hardcodeadas (las variables de entorno requieren plan de pago en n8n.cloud). El workflow esta configurado para usar `https://ai-powered-support-co-pilot.onrender.com` por defecto.

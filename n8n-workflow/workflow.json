@@ -3,18 +3,73 @@
   "nodes": [
     {
       "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.statusCode}}",
+              "operation": "equal",
+              "value2": 200
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "978d28bb-c312-4c73-84c5-a5bc6a3751df",
+      "name": "If Health OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        656,
+        1552
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "boolean": [
+            {
+              "name": "ok"
+            }
+          ],
+          "number": [
+            {
+              "name": "status",
+              "value": 503
+            }
+          ],
+          "string": [
+            {
+              "name": "error",
+              "value": "Backend no disponible (cold start)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6de784e4-956a-4e8a-9370-77c526b66471",
+      "name": "Set Health Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        880,
+        1648
+      ]
+    },
+    {
+      "parameters": {
         "httpMethod": "POST",
         "path": "process-ticket",
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "8b0d17fa-0774-4c7a-b66f-9da98e1d4823",
-      "name": "Webhook",
+      "id": "496ad3b7-5017-4a33-8cfa-3307e3a144ed",
+      "name": "Webhook1",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        64,
-        752
+        208,
+        1552
       ],
       "webhookId": "180985dd-41c5-4083-a1c9-067c71f3c1de"
     },
@@ -27,11 +82,11 @@
           "parameters": [
             {
               "name": "ticket_id",
-              "value": "={{$node[\"Webhook\"].json.body.ticket_id}}"
+              "value": "={{$node[\"Webhook1\"].json.body.ticket_id}}"
             },
             {
               "name": "description",
-              "value": "={{$node[\"Webhook\"].json.body.description}}"
+              "value": "={{$node[\"Webhook1\"].json.body.description}}"
             }
           ]
         },
@@ -43,13 +98,13 @@
           }
         }
       },
-      "id": "29da97f9-7164-46cc-b5f1-99d24c1ccd11",
-      "name": "HTTP Request",
+      "id": "442631be-66d3-4f78-ad77-91741b78f8a8",
+      "name": "HTTP Request2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        512,
-        752
+        880,
+        1456
       ],
       "retryOnFail": true,
       "maxTries": 5,
@@ -69,13 +124,13 @@
         },
         "options": {}
       },
-      "id": "a396e0ba-8c97-4878-9efc-e1e5683301a5",
-      "name": "If",
+      "id": "0d803dd9-b620-4041-b29c-33ac95e3880f",
+      "name": "If1",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1184,
-        848
+        1552,
+        1552
       ]
     },
     {
@@ -108,13 +163,13 @@
         },
         "options": {}
       },
-      "id": "5da2c081-78e9-4736-98bd-b2488f399f76",
-      "name": "Simulate Email",
+      "id": "be2142c7-3ebb-46d6-b246-3b33624c06b1",
+      "name": "Simulate Email1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        1408,
-        752
+        1776,
+        1456
       ]
     },
     {
@@ -125,14 +180,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        288,
-        752
+        432,
+        1552
       ],
-      "id": "c7d85c74-f1dc-42b8-bd7a-6fe7af08b953",
-      "name": "HTTP Request1",
+      "id": "024e9e8e-c019-4858-b8a5-ed7bcbd56712",
+      "name": "HTTP Request3",
       "retryOnFail": true,
       "maxTries": 5,
-      "waitBetweenTries": 2000,
+      "waitBetweenTries": 3000,
       "continueOnFail": true
     },
     {
@@ -146,7 +201,7 @@
           },
           "conditions": [
             {
-              "id": "098bcd05-8626-4b88-b1f4-6a0157cbcf87",
+              "id": "4a76412d-8ad2-432b-b76b-a6e8d5475536",
               "leftValue": "=={{ ($json.statusCode ?? 200) }}",
               "rightValue": "400",
               "operator": {
@@ -160,13 +215,13 @@
         },
         "options": {}
       },
-      "id": "8b402bda-e4c5-45f9-ba60-28393e2a9a09",
-      "name": "If HTTP Error",
+      "id": "616fcff6-9922-4e40-9062-7b02d8172799",
+      "name": "If HTTP Error1",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        736,
-        752
+        1104,
+        1456
       ]
     },
     {
@@ -193,13 +248,13 @@
         },
         "options": {}
       },
-      "id": "454b8058-3437-49c4-a9d3-8c4ba4c55dea",
-      "name": "Set Error Response",
+      "id": "41f03417-f682-425f-9410-908f7030858f",
+      "name": "Set Error Response1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        960,
-        656
+        1328,
+        1360
       ]
     },
     {
@@ -233,13 +288,13 @@
         },
         "options": {}
       },
-      "id": "7b6f84a1-21b7-44a4-969f-a932362ceecd",
-      "name": "Set Success Response",
+      "id": "b9b0ad93-240c-46f8-9ffb-23592f1c22d2",
+      "name": "Set Success Response1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        960,
-        848
+        1328,
+        1552
       ]
     },
     {
@@ -253,92 +308,110 @@
         },
         "options": {}
       },
-      "id": "c90ead34-8bd6-44a4-a2a3-2764132607c6",
-      "name": "Set No Email",
+      "id": "37a3bc15-e710-4d9b-a5ed-6423a14c5077",
+      "name": "Set No Email1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        1408,
-        944
+        1776,
+        1648
       ]
     }
   ],
   "pinData": {},
   "connections": {
-    "Webhook": {
+    "If Health OK": {
       "main": [
         [
           {
-            "node": "HTTP Request1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request": {
-      "main": [
-        [
-          {
-            "node": "If HTTP Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Simulate Email",
+            "node": "HTTP Request2",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Set No Email",
+            "node": "Set Health Error",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request1": {
+    "Webhook1": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "HTTP Request3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If HTTP Error": {
+    "HTTP Request2": {
       "main": [
         [
           {
-            "node": "Set Error Response",
+            "node": "If HTTP Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Simulate Email1",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Set Success Response",
+            "node": "Set No Email1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set Success Response": {
+    "HTTP Request3": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "If Health OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If HTTP Error1": {
+      "main": [
+        [
+          {
+            "node": "Set Error Response1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Success Response1": {
+      "main": [
+        [
+          {
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -351,10 +424,10 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "e3cf9c26-ac0a-4846-8ac4-91c529651c06",
+  "versionId": "348179c1-9877-447a-b665-3ed434119a58",
   "meta": {
     "instanceId": "5e5577b825b3333d180ace89e359b1715dc921b58b40c1970e9a6b1e7123b8fd"
   },
   "id": "BWZA_1S6_84Fd0eNPfEfR",
   "tags": []
-} 
+}
