@@ -2,34 +2,35 @@
 
 Sistema **end-to-end** para procesar tickets:
 
-**Supabase (Postgres + Realtime)** → **n8n (orquestación)** → **Python API (FastAPI + LLM)** → **Frontend (React/Vite Dashboard)**
+**Supabase (Postgres + Realtime)** -> **n8n (orquestacion)** -> **Python API (FastAPI + LLM)** -> **Frontend (React/Vite Dashboard)**
 
 ---
 
 ## Live URLs (obligatorio)
 
 - **Dashboard (Vercel):** https://ai-ticketing-ten.vercel.app/
-- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com/health
+- **Python API (Render):** https://ai-powered-support-co-pilot.onrender.com
 
 ---
 
-## Arquitectura (visión rápida)
+## Arquitectura (vision rapida)
 
 1. El usuario crea un ticket en el dashboard (Supabase).
-2. El dashboard envía `ticket_id` + `description` al **Webhook de n8n**.
+2. El dashboard envia `ticket_id` + `description` al **Webhook de n8n**.
 3. n8n llama a la **API** `POST /process-ticket`.
-4. La API clasifica (categoría + sentimiento) con LLM y actualiza el ticket en Supabase.
+4. La API clasifica (categoria + sentimiento) con LLM y actualiza el ticket en Supabase.
 5. Supabase Realtime actualiza la tabla en UI sin refrescar.
 6. Si sentimiento = **Negativo**, n8n ejecuta “email simulado”.
+7. **PLUS:** si es Negativo, n8n envia alerta a Discord.
 
 ---
 
 ## Estructura del repositorio (obligatorio)
 
-- `/supabase` → `setup.sql`
-- `/python-api` → FastAPI + `requirements.txt` (+ `Dockerfile` si aplica)
-- `/n8n-workflow` → `workflow.json` (sin credenciales) + docs
-- `/frontend` → dashboard (React 18 + TypeScript + Vite + Tailwind)
+- `/supabase` -> `setup.sql`
+- `/python-api` -> FastAPI + `requirements.txt` (+ `Dockerfile` si aplica)
+- `/n8n-workflow` -> `workflow.json` (sin credenciales) + docs
+- `/frontend` -> dashboard (React 18 + TypeScript + Vite + Tailwind)
 
 ---
 
@@ -38,7 +39,7 @@ Sistema **end-to-end** para procesar tickets:
 - **POST `/process-ticket`**: clasifica `category` + `sentiment` y actualiza el ticket en Supabase.
 - **Idempotencia**: si `processed=true`, retorna el resultado sin recalcular.
 - **Healthcheck**: **GET `/health`**.
-- **n8n workflow**: Webhook → (opcional warm-up health) → POST process-ticket → IF `sentiment=Negativo` → simulate email.
+- **n8n workflow**: Webhook -> (opcional warm-up health) -> POST process-ticket -> IF `sentiment=Negativo` -> simulate email + alerta Discord.
 
 ---
 
@@ -69,13 +70,13 @@ Sistema **end-to-end** para procesar tickets:
 ```
 
 **Errores comunes**
-- 400: UUID inválido
+- 400: UUID invalido
 - 404: ticket no encontrado (no existe en Supabase)
 - 502: fallo del LLM / proveedor externo
 
 ---
 
-## Probar la API (rápido)
+## Probar la API (rapido)
 
 **Health**
 ```bash
@@ -86,7 +87,7 @@ curl -s https://ai-powered-support-co-pilot.onrender.com/health
 ```bash
 curl -X POST https://ai-powered-support-co-pilot.onrender.com/process-ticket \
   -H "Content-Type: application/json" \
-  -d "{\"ticket_id\":\"<UUID_REAL>\",\"description\":\"No puedo iniciar sesión, error 500\"}"
+  -d "{\"ticket_id\":\"<UUID_REAL>\",\"description\":\"No puedo iniciar sesion, error 500\"}"
 ```
 
 ---
@@ -122,8 +123,8 @@ python -m venv .venv
 
 ## Demo paso a paso
 
-1) Crear ticket (modal “Crear ticket”) con descripción.  
-2) Procesar (envía ticket_id + description al webhook de n8n).  
+1) Crear ticket (modal “Crear ticket”) con descripcion.  
+2) Procesar (envia ticket_id + description al webhook de n8n).  
 3) Ver realtime update en la tabla sin refrescar.  
 4) Reprocesar el mismo ticket para validar idempotencia (processed=true).
 
@@ -143,14 +144,14 @@ python -m venv .venv
 
 ---
 
-## Prompt Engineering (clasificación) (obligatorio)
+## Prompt Engineering (clasificacion) (obligatorio)
 
-Estrategia aplicada para clasificación category + sentiment:
+Estrategia aplicada para clasificacion category + sentiment:
 
 - Structured output: salida validada con Pydantic schema (evita texto libre).
-- Taxonomía cerrada: Enums para categorías y sentimientos, reduce alucinaciones.
+- Taxonomia cerrada: Enums para categorias y sentimientos, reduce alucinaciones.
 - Prompt corto y estricto: reglas claras + “responde solo con el schema”.
-- Validación + manejo de errores: si parsing/validación falla → error controlado.
+- Validacion + manejo de errores: si parsing/validacion falla -> error controlado.
 - Idempotencia: si processed=true no se llama al LLM; se retorna lo almacenado.
 
 ---
@@ -159,11 +160,11 @@ Estrategia aplicada para clasificación category + sentiment:
 
 - Backend: Render
 - Frontend: Vercel
-- Orquestación: n8n Cloud
+- Orquestacion: n8n Cloud
 
 ---
 
-## Configuración de n8n
+## Configuracion de n8n
 
 En n8n Cloud, el workflow usa la API en Render (hardcode) porque variables globales pueden requerir plan pago.
 Por defecto llama a:
