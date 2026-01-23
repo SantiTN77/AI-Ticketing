@@ -1,4 +1,5 @@
-﻿import { Copy } from 'lucide-react'
+﻿import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { Copy } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { formatDate } from '../utils/date'
@@ -16,8 +17,13 @@ type TicketRow = {
 
 const MAX_ITEMS = 20
 
-async function selectTickets(select: string): Promise<{ rows: TicketRow[] | null; error?: string }> {
-  const { data, error } = await supabase.from('tickets').select(select).limit(MAX_ITEMS)
+async function selectTickets(
+  select: string,
+): Promise<{ rows: TicketRow[] | null; error?: string }> {
+  const { data, error } = await supabase
+    .from<TicketRow>('tickets')
+    .select(select)
+    .limit(MAX_ITEMS)
   if (error || !data) {
     return { rows: null, error: error?.message || 'No data' }
   }
@@ -84,7 +90,7 @@ export function TicketsRealtime() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tickets' },
-        (payload: { new?: TicketRow; old?: TicketRow }) => {
+        (payload: RealtimePostgresChangesPayload<TicketRow>) => {
           const row = (payload.new || payload.old) as TicketRow
           if (!row?.id) return
           setTickets((current) => {
