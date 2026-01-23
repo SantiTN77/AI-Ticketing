@@ -149,6 +149,9 @@ export function TicketForm() {
             if (shouldRetry(status, message) && attempt < maxAttempts) {
               lastRetryableStatus = status
               lastRetryableMessage = message
+              if (status === 503) {
+                setInfo('Despertando servidor...')
+              }
               continue
             }
             if (shouldRetry(status, message)) {
@@ -169,6 +172,14 @@ export function TicketForm() {
           }
 
           if ('ok' in parsed && parsed.ok === true) {
+            if (!parsed.category || !parsed.sentiment) {
+              lastRetryableStatus = response.status
+              lastRetryableMessage = 'Respuesta incompleta del backend'
+              if (attempt < maxAttempts) {
+                continue
+              }
+              break
+            }
             setResult({ status: 'success', data: parsed })
             addToast({
               title: 'Ticket procesado',
@@ -233,7 +244,7 @@ export function TicketForm() {
       if (lastRetryableMessage) {
         setInfo('Procesando en segundo plano... (Render puede tardar ~50s)')
       }
-      const pollAttempts = 10
+      const pollAttempts = 12
       for (let i = 0; i < pollAttempts; i += 1) {
         await sleep(3000)
         const { data } = await supabase
@@ -242,7 +253,7 @@ export function TicketForm() {
           .eq('id', ticketId.trim())
           .single()
 
-        if (data?.processed) {
+        if (data?.processed && data.category && data.sentiment) {
           setResult({
             status: 'success',
             data: {
